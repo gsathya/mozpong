@@ -7,10 +7,10 @@ EXE = pong
 
 all: $(EXE)
 
-$(EXE): main.o
+$(EXE): pong.o
 	$(CXX) $(LDFLAGS) $< -o $@
 
-main.o: main.c
+main.o: pong.c
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:
