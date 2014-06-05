@@ -3,9 +3,9 @@
 #include <sdl2/SDL_image.h>
 #include "pong.h"
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
-const char *img_path = "x.png";
+static const int SCREEN_WIDTH = 640;
+static const int SCREEN_HEIGHT = 480;
+static const char *img_path = "x.png";
 
 int init(SDL_Window **window) {
   if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
