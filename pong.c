@@ -32,7 +32,7 @@ int init(SDL_Window **window, SDL_Renderer **renderer) {
   }
 
   SDL_SetRenderDrawColor(*renderer, 0xFF, 0xFF, 0xFF, 0xFF);
-  
+
   int imgFlags = IMG_INIT_PNG;
   if( !( IMG_Init( imgFlags ) & imgFlags ) ) {
     printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
@@ -61,12 +61,12 @@ int load_surface(SDL_Surface **png_surface, SDL_Surface *screen_surface) {
 }
 
 int load_texture(SDL_Texture **texture, SDL_Renderer *renderer) {
-	//Load image at specified path
-	SDL_Surface *loaded_surface = IMG_Load(img_path);
-	if(loaded_surface == NULL){
-		printf( "Unable to load image %s! SDL_image Error: %s\n", img_path, IMG_GetError());
+  //Load image at specified path
+  SDL_Surface *loaded_surface = IMG_Load(img_path);
+  if(loaded_surface == NULL){
+    printf( "Unable to load image %s! SDL_image Error: %s\n", img_path, IMG_GetError());
     return 1;
-	}
+  }
 
   //Create texture from surface pixels
   *texture = SDL_CreateTextureFromSurface(renderer, loaded_surface);
@@ -82,14 +82,15 @@ int load_texture(SDL_Texture **texture, SDL_Renderer *renderer) {
 
 int main(int argc, char *args[]){
   static int quit = FALSE;
-  
+  static int show_title = TRUE;
+
   static SDL_Window *window = NULL;
   static SDL_Surface *screen_surface = NULL;
   static SDL_Surface *png_surface = NULL;
   static SDL_Texture *texture = NULL;
   static SDL_Renderer *renderer = NULL;
   static SDL_Event event;
-  
+
   if (init(&window, &renderer) == 1){
     printf("Failed to init system\n");
     return 1;
@@ -107,7 +108,7 @@ int main(int argc, char *args[]){
     printf("Failed to load texture\n");
     return 1;
   }
-  
+
   while(!quit){
     while(SDL_PollEvent(&event) != 0) {
       if (event.type == SDL_QUIT){
@@ -116,12 +117,39 @@ int main(int argc, char *args[]){
         quit = TRUE;
       }
     }
-    //Clear screen
-    SDL_RenderClear(renderer);
-    
+
     //Render texture to screen
-    SDL_RenderCopy(renderer, texture, NULL, NULL );
-    
+    if (show_title) {
+      SDL_RenderClear(renderer);      
+      SDL_RenderCopy(renderer, texture, NULL, NULL );
+      SDL_RenderPresent(renderer);
+      
+      show_title = FALSE;
+      SDL_Delay(500);
+      continue;
+    }
+
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    SDL_RenderClear(renderer);
+
+     //Render red filled quad
+    SDL_Rect red_rect = { 0,
+                          SCREEN_HEIGHT / 3,
+                          10,
+                          SCREEN_HEIGHT / 4 };
+
+    SDL_SetRenderDrawColor( renderer, 0xFF, 0x00, 0x00, 0xFF );
+    SDL_RenderFillRect( renderer, &red_rect );
+
+    //Render red filled quad
+    SDL_Rect blue_rect = { SCREEN_WIDTH-10,
+                           SCREEN_HEIGHT/3,
+                           10,
+                           SCREEN_HEIGHT / 4 };
+
+    SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0xFF, 0xFF );
+    SDL_RenderFillRect( renderer, &blue_rect );
+
     //Update screen
     SDL_RenderPresent(renderer);
   }
@@ -131,7 +159,7 @@ int main(int argc, char *args[]){
 
   SDL_DestroyRenderer(renderer);
   renderer = NULL;
-  
+
   SDL_DestroyWindow(window);
   window = NULL;
 
