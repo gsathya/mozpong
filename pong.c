@@ -5,12 +5,13 @@
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
+const char *img_path = "x.png";
 
 int init(SDL_Window **window) {
   if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
     printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
     return 1;
-  } 
+  }
 
   //Create window
   *window = SDL_CreateWindow( "Ping pong",
@@ -22,7 +23,7 @@ int init(SDL_Window **window) {
   if( window == NULL ) {
     printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
     return 1;
-  } 
+  }
 
   int imgFlags = IMG_INIT_PNG;
   if( !( IMG_Init( imgFlags ) & imgFlags ) ) {
@@ -34,7 +35,7 @@ int init(SDL_Window **window) {
 }
 
 int load_surface(SDL_Surface **png_surface, SDL_Surface *screen_surface) {
-  SDL_Surface* loadedSurface = IMG_Load("x.png");
+  SDL_Surface* loadedSurface = IMG_Load(img_path);
   if(loadedSurface == NULL) {
     printf( "Unable to load image x.png! SDL_image Error: %s\n", IMG_GetError() );
     return 1;
@@ -52,15 +53,15 @@ int load_surface(SDL_Surface **png_surface, SDL_Surface *screen_surface) {
 }
 
 int main(int argc, char *args[]){
-  SDL_Window* window = NULL; 
+  SDL_Window* window = NULL;
   SDL_Surface* screen_surface = NULL;
   SDL_Surface* png_surface = NULL;
-  
+
   if (init(&window) == 1){
     printf("Failed to init system\n");
     return 0;
   }
-  
+
   //Get window surface
   screen_surface = SDL_GetWindowSurface( window );
 
@@ -68,7 +69,7 @@ int main(int argc, char *args[]){
     printf("Failed to load surface\n");
     return 0;
   }
-  
+
   SDL_BlitSurface(png_surface, NULL, screen_surface, NULL);
   //Update the surface
   SDL_UpdateWindowSurface( window );
@@ -84,6 +85,6 @@ int main(int argc, char *args[]){
 
   IMG_Quit();
   SDL_Quit();
-  
+
   return 0;
 }
