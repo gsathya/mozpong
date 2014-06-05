@@ -53,9 +53,9 @@ int load_surface(SDL_Surface **png_surface, SDL_Surface *screen_surface) {
 }
 
 int main(int argc, char *args[]){
-  SDL_Window* window = NULL;
-  SDL_Surface* screen_surface = NULL;
-  SDL_Surface* png_surface = NULL;
+  SDL_Window *window = NULL;
+  SDL_Surface *screen_surface = NULL;
+  SDL_Surface *png_surface = NULL;
 
   if (init(&window) == 1){
     printf("Failed to init system\n");
