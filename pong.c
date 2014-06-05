@@ -37,13 +37,13 @@ int init(SDL_Window **window) {
 int load_surface(SDL_Surface **png_surface, SDL_Surface *screen_surface) {
   SDL_Surface* loadedSurface = IMG_Load(img_path);
   if(loadedSurface == NULL) {
-    printf( "Unable to load image x.png! SDL_image Error: %s\n", IMG_GetError() );
+    printf( "Unable to load image %s! SDL_image Error: %s\n", img_path, IMG_GetError() );
     return 1;
   }
 
   *png_surface = SDL_ConvertSurface( loadedSurface, screen_surface->format, NULL );
   if( png_surface == NULL ) {
-    printf( "Unable to optimize image x.png! SDL Error: %s\n", SDL_GetError() );
+    printf( "Unable to optimize image %s! SDL Error: %s\n", img_path, SDL_GetError() );
     return 1;
   }
 
