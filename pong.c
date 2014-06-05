@@ -6,17 +6,14 @@
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 
-int main(int argc, char *args[]){
-  SDL_Window* window = NULL; 
-  SDL_Surface* screenSurface = NULL;
-
+int init(SDL_Window **window) {
   if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
     printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
     return 1;
   } 
 
   //Create window
-  window = SDL_CreateWindow( "Ping pong",
+  *window = SDL_CreateWindow( "Ping pong",
                              SDL_WINDOWPOS_UNDEFINED,
                              SDL_WINDOWPOS_UNDEFINED,
                              SCREEN_WIDTH,
@@ -32,38 +29,61 @@ int main(int argc, char *args[]){
     printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
     return 1;
   }
-  
-  //Get window surface
-  screenSurface = SDL_GetWindowSurface( window );
 
-  SDL_Surface* optimizedSurface = NULL;
+  return 0;
+}
+
+int load_surface(SDL_Surface **png_surface, SDL_Surface *screen_surface) {
   SDL_Surface* loadedSurface = IMG_Load("x.png");
   if(loadedSurface == NULL) {
     printf( "Unable to load image x.png! SDL_image Error: %s\n", IMG_GetError() );
     return 1;
   }
 
-  optimizedSurface = SDL_ConvertSurface( loadedSurface, screenSurface->format, NULL );
-  if( optimizedSurface == NULL ) {
+  *png_surface = SDL_ConvertSurface( loadedSurface, screen_surface->format, NULL );
+  if( png_surface == NULL ) {
     printf( "Unable to optimize image x.png! SDL Error: %s\n", SDL_GetError() );
     return 1;
   }
 
   //Get rid of old loaded surface
-  SDL_FreeSurface( loadedSurface ); 
+  SDL_FreeSurface( loadedSurface );
+  return 0;
+}
 
-  SDL_BlitSurface(optimizedSurface, NULL, screenSurface, NULL);
+int main(int argc, char *args[]){
+  SDL_Window* window = NULL; 
+  SDL_Surface* screen_surface = NULL;
+  SDL_Surface* png_surface = NULL;
+  
+  if (init(&window) == 1){
+    printf("Failed to init system\n");
+    return 0;
+  }
+  
+  //Get window surface
+  screen_surface = SDL_GetWindowSurface( window );
+
+  if (load_surface(&png_surface, screen_surface) == 1){
+    printf("Failed to load surface\n");
+    return 0;
+  }
+  
+  SDL_BlitSurface(png_surface, NULL, screen_surface, NULL);
   //Update the surface
   SDL_UpdateWindowSurface( window );
 
   //Wait two seconds
   SDL_Delay( 2000 );
- 
-  //Destroy window
-  SDL_DestroyWindow( window );
- 
-  //Quit SDL subsystems
+
+  SDL_FreeSurface(png_surface);
+  png_surface = NULL;
+
+  SDL_DestroyWindow(window);
+  window = NULL;
+
+  IMG_Quit();
   SDL_Quit();
- 
+  
   return 0;
 }
