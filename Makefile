@@ -1,5 +1,5 @@
 CXX = clang
-SDL = -lSDL2
+SDL = -lSDL2 -lSDL2_image
 
 CXXFLAGS = -Wall -c
 LDFLAGS = $(SDL)

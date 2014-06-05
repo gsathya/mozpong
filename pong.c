@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <sdl2/SDL.h>
-
+#include <sdl2/SDL_image.h>
 #include "pong.h"
 
 const int SCREEN_WIDTH = 640;
@@ -27,12 +27,32 @@ int main(int argc, char *args[]){
     return 1;
   } 
 
+  int imgFlags = IMG_INIT_PNG;
+  if( !( IMG_Init( imgFlags ) & imgFlags ) ) {
+    printf( "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError() );
+    return 1;
+  }
+  
   //Get window surface
   screenSurface = SDL_GetWindowSurface( window );
- 
-  //Fill the surface white
-  SDL_FillRect( screenSurface, NULL, SDL_MapRGB( screenSurface->format, 0xFF, 0xFF, 0xFF ) );
-      
+
+  SDL_Surface* optimizedSurface = NULL;
+  SDL_Surface* loadedSurface = IMG_Load("x.png");
+  if(loadedSurface == NULL) {
+    printf( "Unable to load image x.png! SDL_image Error: %s\n", IMG_GetError() );
+    return 1;
+  }
+
+  optimizedSurface = SDL_ConvertSurface( loadedSurface, screenSurface->format, NULL );
+  if( optimizedSurface == NULL ) {
+    printf( "Unable to optimize image x.png! SDL Error: %s\n", SDL_GetError() );
+    return 1;
+  }
+
+  //Get rid of old loaded surface
+  SDL_FreeSurface( loadedSurface ); 
+
+  SDL_BlitSurface(optimizedSurface, NULL, screenSurface, NULL);
   //Update the surface
   SDL_UpdateWindowSurface( window );
 
