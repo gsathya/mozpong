@@ -35,47 +35,57 @@ int init(SDL_Window **window) {
 }
 
 int load_surface(SDL_Surface **png_surface, SDL_Surface *screen_surface) {
-  SDL_Surface* loadedSurface = IMG_Load(img_path);
-  if(loadedSurface == NULL) {
+  SDL_Surface* loaded_surface = IMG_Load(img_path);
+  if(loaded_surface == NULL) {
     printf( "Unable to load image %s! SDL_image Error: %s\n", img_path, IMG_GetError() );
     return 1;
   }
 
-  *png_surface = SDL_ConvertSurface( loadedSurface, screen_surface->format, NULL );
+  *png_surface = SDL_ConvertSurface(loaded_surface, screen_surface->format, NULL);
   if( png_surface == NULL ) {
     printf( "Unable to optimize image %s! SDL Error: %s\n", img_path, SDL_GetError() );
     return 1;
   }
 
   //Get rid of old loaded surface
-  SDL_FreeSurface( loadedSurface );
+  SDL_FreeSurface(loaded_surface);
   return 0;
 }
 
 int main(int argc, char *args[]){
-  SDL_Window *window = NULL;
-  SDL_Surface *screen_surface = NULL;
-  SDL_Surface *png_surface = NULL;
-
+  static int quit = FALSE;
+  
+  static SDL_Window *window = NULL;
+  static SDL_Surface *screen_surface = NULL;
+  static SDL_Surface *png_surface = NULL;
+  static SDL_Event event;
+  
   if (init(&window) == 1){
     printf("Failed to init system\n");
     return 0;
   }
 
   //Get window surface
-  screen_surface = SDL_GetWindowSurface( window );
+  screen_surface = SDL_GetWindowSurface(window);
 
   if (load_surface(&png_surface, screen_surface) == 1){
     printf("Failed to load surface\n");
     return 0;
   }
 
-  SDL_BlitSurface(png_surface, NULL, screen_surface, NULL);
-  //Update the surface
-  SDL_UpdateWindowSurface( window );
+  while(!quit){
+    while(SDL_PollEvent(&event) != 0) {
+      if (event.type == SDL_QUIT){
+        quit = TRUE;
+      } else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_q) {
+        quit = TRUE;
+      }
+    }
 
-  //Wait two seconds
-  SDL_Delay( 2000 );
+    SDL_BlitSurface(png_surface, NULL, screen_surface, NULL);
+    //Update the surface
+    SDL_UpdateWindowSurface( window );
+  }
 
   SDL_FreeSurface(png_surface);
   png_surface = NULL;
