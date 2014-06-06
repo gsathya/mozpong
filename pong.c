@@ -80,6 +80,40 @@ int load_texture(SDL_Texture **texture, SDL_Renderer *renderer) {
   return 0;
 }
 
+void update_position(SDL_Rect* player, int x, int y, int w, int h) {
+  player->x = x;
+  player->y = y;
+  player->w = w;
+  player->h = h;
+}
+
+void move_down(SDL_Rect* player) {
+  int y = player->y;
+  int h = player->h;
+
+  // we hit the bottom
+  if (y + h>= 480) {
+    y = 480 - h;
+  } else {
+    y = y+1;
+  }
+  player->y = y;
+}
+
+void move_up(SDL_Rect* player) {
+  int y = player->y;
+  int h = player->h;
+
+  // we hit the top
+  if (y - 1 <= 0) {
+    y = 0;
+  } else {
+    y = y-1;
+  }
+
+  player->y = y;
+}
+
 int main(int argc, char *args[]){
   static int quit = FALSE;
   static int show_title = TRUE;
@@ -90,6 +124,8 @@ int main(int argc, char *args[]){
   static SDL_Texture *texture = NULL;
   static SDL_Renderer *renderer = NULL;
   static SDL_Event event;
+
+  SDL_Rect player1, player2;
 
   if (init(&window, &renderer) == 1){
     printf("Failed to init system\n");
@@ -109,21 +145,49 @@ int main(int argc, char *args[]){
     return 1;
   }
 
+  // set up initial positions
+  update_position(&player1,
+                  0,
+                  SCREEN_HEIGHT / 3,
+                  10,
+                  SCREEN_HEIGHT / 4);
+
+  // set up initial positions
+  update_position(&player2,
+                  SCREEN_WIDTH-10,
+                  SCREEN_HEIGHT/3,
+                  10,
+                  SCREEN_HEIGHT / 4);
+
   while(!quit){
     while(SDL_PollEvent(&event) != 0) {
       if (event.type == SDL_QUIT){
         quit = TRUE;
-      } else if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_q) {
-        quit = TRUE;
       }
     }
 
+    const Uint8 *key_state = SDL_GetKeyboardState( NULL );
+    if( key_state[ SDL_SCANCODE_UP ] ) {
+      move_up(&player1);
+    }
+
+    if( key_state[ SDL_SCANCODE_DOWN ] ) {
+      move_down(&player1);
+    } 
+
+    if( key_state[ SDL_SCANCODE_W ] ) {
+      move_up(&player2);
+    }
+
+    if( key_state[ SDL_SCANCODE_S ] ) {
+      move_down(&player2);
+    }
     //Render texture to screen
     if (show_title) {
-      SDL_RenderClear(renderer);      
+      SDL_RenderClear(renderer);
       SDL_RenderCopy(renderer, texture, NULL, NULL );
       SDL_RenderPresent(renderer);
-      
+
       show_title = FALSE;
       SDL_Delay(500);
       continue;
@@ -132,23 +196,13 @@ int main(int argc, char *args[]){
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
 
-     //Render red filled quad
-    SDL_Rect red_rect = { 0,
-                          SCREEN_HEIGHT / 3,
-                          10,
-                          SCREEN_HEIGHT / 4 };
-
+    //Render player1
     SDL_SetRenderDrawColor( renderer, 0xFF, 0x00, 0x00, 0xFF );
-    SDL_RenderFillRect( renderer, &red_rect );
+    SDL_RenderFillRect( renderer, &player1 );
 
-    //Render red filled quad
-    SDL_Rect blue_rect = { SCREEN_WIDTH-10,
-                           SCREEN_HEIGHT/3,
-                           10,
-                           SCREEN_HEIGHT / 4 };
-
+    //Render player2
     SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0xFF, 0xFF );
-    SDL_RenderFillRect( renderer, &blue_rect );
+    SDL_RenderFillRect( renderer, &player2 );
 
     //Update screen
     SDL_RenderPresent(renderer);
