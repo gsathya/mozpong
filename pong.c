@@ -5,7 +5,8 @@
 
 static const int SCREEN_WIDTH = 640;
 static const int SCREEN_HEIGHT = 480;
-static const char *img_path = "x.png";
+static const char *title_img_path = "x.png";
+static const char *dot_img_path = "dot.bmp";
 
 int init(SDL_Window **window, SDL_Renderer **renderer) {
   if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
@@ -43,15 +44,15 @@ int init(SDL_Window **window, SDL_Renderer **renderer) {
 }
 
 int load_surface(SDL_Surface **png_surface, SDL_Surface *screen_surface) {
-  SDL_Surface* loaded_surface = IMG_Load(img_path);
+  SDL_Surface* loaded_surface = IMG_Load(title_img_path);
   if(loaded_surface == NULL) {
-    printf( "Unable to load image %s! SDL_image Error: %s\n", img_path, IMG_GetError() );
+    printf( "Unable to load image %s! SDL_image Error: %s\n", title_img_path, IMG_GetError() );
     return 1;
   }
 
   *png_surface = SDL_ConvertSurface(loaded_surface, screen_surface->format, NULL);
   if( png_surface == NULL ) {
-    printf( "Unable to optimize image %s! SDL Error: %s\n", img_path, SDL_GetError() );
+    printf( "Unable to optimize image %s! SDL Error: %s\n", title_img_path, SDL_GetError() );
     return 1;
   }
 
@@ -62,16 +63,16 @@ int load_surface(SDL_Surface **png_surface, SDL_Surface *screen_surface) {
 
 int load_texture(SDL_Texture **texture, SDL_Renderer *renderer) {
   //Load image at specified path
-  SDL_Surface *loaded_surface = IMG_Load(img_path);
+  SDL_Surface *loaded_surface = IMG_Load(title_img_path);
   if(loaded_surface == NULL){
-    printf( "Unable to load image %s! SDL_image Error: %s\n", img_path, IMG_GetError());
+    printf( "Unable to load image %s! SDL_image Error: %s\n", title_img_path, IMG_GetError());
     return 1;
   }
 
   //Create texture from surface pixels
   *texture = SDL_CreateTextureFromSurface(renderer, loaded_surface);
   if( texture == NULL ){
-    printf( "Unable to create texture from %s! SDL Error: %s\n", img_path, SDL_GetError() );
+    printf( "Unable to create texture from %s! SDL Error: %s\n", title_img_path, SDL_GetError() );
     return 1;
   }
 
@@ -87,28 +88,15 @@ void update_position(SDL_Rect* player, int x, int y, int w, int h) {
   player->h = h;
 }
 
-void move_down(SDL_Rect* player) {
+void move(SDL_Rect* player, int velocity) {
   int y = player->y;
   int h = player->h;
 
-  // we hit the bottom
-  if (y + h>= 480) {
-    y = 480 - h;
-  } else {
-    y = y+1;
-  }
-  player->y = y;
-}
+  y = y + velocity;
 
-void move_up(SDL_Rect* player) {
-  int y = player->y;
-  int h = player->h;
-
-  // we hit the top
-  if (y - 1 <= 0) {
-    y = 0;
-  } else {
-    y = y-1;
+  // don't go out of screen!!
+  if (y+h > SCREEN_HEIGHT || y < 0) {
+    y = y - velocity;
   }
 
   player->y = y;
@@ -148,16 +136,16 @@ int main(int argc, char *args[]){
   // set up initial positions
   update_position(&player1,
                   0,
-                  SCREEN_HEIGHT / 3,
+                  SCREEN_HEIGHT / 2 -  SCREEN_HEIGHT / 12,
                   10,
-                  SCREEN_HEIGHT / 4);
+                  SCREEN_HEIGHT / 6);
 
   // set up initial positions
   update_position(&player2,
                   SCREEN_WIDTH-10,
-                  SCREEN_HEIGHT/3,
+                  SCREEN_HEIGHT / 2 - SCREEN_HEIGHT / 12,
                   10,
-                  SCREEN_HEIGHT / 4);
+                  SCREEN_HEIGHT / 6);
 
   while(!quit){
     while(SDL_PollEvent(&event) != 0) {
@@ -168,19 +156,19 @@ int main(int argc, char *args[]){
 
     const Uint8 *key_state = SDL_GetKeyboardState( NULL );
     if( key_state[ SDL_SCANCODE_UP ] ) {
-      move_up(&player1);
+      move(&player1, -1);
     }
 
     if( key_state[ SDL_SCANCODE_DOWN ] ) {
-      move_down(&player1);
+      move(&player1, 1);
     } 
 
     if( key_state[ SDL_SCANCODE_W ] ) {
-      move_up(&player2);
+      move(&player2, -1);
     }
 
     if( key_state[ SDL_SCANCODE_S ] ) {
-      move_down(&player2);
+      move(&player2, 1);
     }
     //Render texture to screen
     if (show_title) {
