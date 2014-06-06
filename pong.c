@@ -6,8 +6,11 @@
 static const int SCREEN_WIDTH = 640;
 static const int SCREEN_HEIGHT = 480;
 static const char *title_img_path = "x.png";
-static const char *dot_img_path = "dot.bmp";
+static const char *ball_img_path = "dot.bmp";
 static const int velocity = 1;
+
+int ball_w;
+int ball_h;
 
 int init(SDL_Window **window, SDL_Renderer **renderer) {
   if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
@@ -66,7 +69,9 @@ int load_surface(SDL_Surface **png_surface, SDL_Surface *screen_surface) {
   return 0;
 }
 
-int load_texture(SDL_Texture **texture, SDL_Renderer *renderer) {
+int load_texture(SDL_Texture **texture,
+                 SDL_Texture **ball_texture,
+                 SDL_Renderer *renderer) {
   //Load image at specified path
   SDL_Surface *loaded_surface = IMG_Load(title_img_path);
   if(loaded_surface == NULL){
@@ -84,6 +89,30 @@ int load_texture(SDL_Texture **texture, SDL_Renderer *renderer) {
             SDL_GetError() );
     return 1;
   }
+
+  //Get rid of old loaded surface
+  SDL_FreeSurface(loaded_surface);
+
+  //Load image at specified path
+  loaded_surface = IMG_Load(ball_img_path);
+  if(loaded_surface == NULL){
+    printf( "Unable to load image %s! SDL_image Error: %s\n",
+            ball_img_path,
+            IMG_GetError());
+    return 1;
+  }
+
+  //Create texture from surface pixels
+  *ball_texture = SDL_CreateTextureFromSurface(renderer, loaded_surface);
+  if( texture == NULL ){
+    printf( "Unable to create texture from %s! SDL Error: %s\n",
+            ball_img_path,
+            SDL_GetError() );
+    return 1;
+  }
+
+  ball_w = loaded_surface->w;
+  ball_h = loaded_surface->h;
 
   //Get rid of old loaded surface
   SDL_FreeSurface(loaded_surface);
@@ -119,6 +148,7 @@ int main(int argc, char *args[]){
   static SDL_Surface *screen_surface = NULL;
   static SDL_Surface *png_surface = NULL;
   static SDL_Texture *texture = NULL;
+  static SDL_Texture *ball_texture = NULL;
   static SDL_Renderer *renderer = NULL;
   static SDL_Event event;
 
@@ -138,7 +168,7 @@ int main(int argc, char *args[]){
   /*   return 0; */
   /* } */
 
-  if(load_texture(&texture, renderer) == 1){
+  if(load_texture(&texture, &ball_texture, renderer) == 1){
     printf("Failed to load texture\n");
     return 1;
   }
@@ -163,25 +193,22 @@ int main(int argc, char *args[]){
         quit = TRUE;
       }
       if( event.type == SDL_KEYDOWN && event.key.repeat == 0 ) {
-        //Adjust the velocity
-        switch( event.key.keysym.sym )
-          {
-          case SDLK_UP: player1_vel -= velocity; break;
-          case SDLK_DOWN: player1_vel += velocity; break;
-          case SDLK_w: player2_vel -= velocity; break;
-          case SDLK_s: player2_vel += velocity; break;
-          case SDLK_q : quit = TRUE; break;
-          default: break;
-          }
-        } else if( event.type == SDL_KEYUP && event.key.repeat == 0 ) {
-        switch( event.key.keysym.sym )
-          {
-          case SDLK_UP: player1_vel += velocity; break;
-          case SDLK_DOWN: player1_vel -= velocity; break;
-          case SDLK_w: player2_vel += velocity; break;
-          case SDLK_s: player2_vel -= velocity; break;
-          default: break;
-          }
+        switch( event.key.keysym.sym ) {
+        case SDLK_UP: player1_vel -= velocity; break;
+        case SDLK_DOWN: player1_vel += velocity; break;
+        case SDLK_w: player2_vel -= velocity; break;
+        case SDLK_s: player2_vel += velocity; break;
+        case SDLK_q : quit = TRUE; break;
+        default: break;
+        }
+      } else if( event.type == SDL_KEYUP && event.key.repeat == 0 ) {
+        switch( event.key.keysym.sym ) {
+        case SDLK_UP: player1_vel += velocity; break;
+        case SDLK_DOWN: player1_vel -= velocity; break;
+        case SDLK_w: player2_vel += velocity; break;
+        case SDLK_s: player2_vel -= velocity; break;
+        default: break;
+        }
       }
     }
 
@@ -199,6 +226,8 @@ int main(int argc, char *args[]){
       continue;
     }
 
+    SDL_RenderClear(renderer);
+
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(renderer);
 
@@ -209,6 +238,24 @@ int main(int argc, char *args[]){
     //Render player2
     SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0xFF, 0xFF );
     SDL_RenderFillRect( renderer, &player2 );
+
+    // Render ball
+    SDL_Rect renderQuad = {SCREEN_WIDTH/2 - ball_w/2,
+                           SCREEN_HEIGHT/2-ball_h/2,
+                           ball_w,
+                           ball_h};
+    SDL_Rect *clip = NULL;
+    SDL_Point *center = NULL;
+    double angle = 0.0;
+    SDL_RendererFlip flip = SDL_FLIP_NONE;
+
+    SDL_RenderCopyEx(renderer,
+                     ball_texture,
+                     clip,
+                     &renderQuad,
+                     angle,
+                     center,
+                     SDL_FLIP_NONE);
 
     //Update screen
     SDL_RenderPresent(renderer);
