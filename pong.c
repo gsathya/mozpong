@@ -316,7 +316,7 @@ void loop() {
   } else {
     if ( SDL_GetTicks() - start_time > 1000) {
       start_time = SDL_GetTicks();
-      ball_vel_y = rand() % 10 - 8;
+      ball_vel_y = rand() % 7 - 5;
     }
   }
 
