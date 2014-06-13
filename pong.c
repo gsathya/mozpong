@@ -1,8 +1,13 @@
 #include <stdio.h>
+
+#ifdef EMSCRIPTEN
 #include <SDL.h>
 #include <SDL_image.h>
-
 #include <emscripten/emscripten.h>
+#else
+#include <sdl2/SDL.h>
+#include <sdl2/SDL_image.h>
+#endif
 
 static const int SCREEN_WIDTH = 640;
 static const int SCREEN_HEIGHT = 480;
@@ -26,8 +31,14 @@ static SDL_Texture *texture = NULL;
 static SDL_Texture *ball_texture = NULL;
 static SDL_Renderer *renderer = NULL;
 
-SDL_Rect player1, player2;
+SDL_Rect player1, player2, renderQuad;
 int player1_vel = 0, player2_vel = 0;
+
+
+SDL_Rect *clip = NULL;
+SDL_Point *center = NULL;
+double angle = 0.0;
+SDL_RendererFlip flip = SDL_FLIP_NONE;
 
 int init(SDL_Window **window, SDL_Renderer **renderer) {
   if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
@@ -61,28 +72,6 @@ int init(SDL_Window **window, SDL_Renderer **renderer) {
   /*   return 1; */
   /* } */
 
-  return 0;
-}
-
-int load_surface(SDL_Surface **png_surface, SDL_Surface *screen_surface) {
-  SDL_Surface* loaded_surface = IMG_Load(title_img_path);
-  if(loaded_surface == NULL) {
-    printf( "Unable to load image %s! SDL_image Error: %s\n",
-            title_img_path,
-            IMG_GetError());
-    return 1;
-  }
-
-  *png_surface = SDL_ConvertSurface(loaded_surface, screen_surface->format, NULL);
-  if( png_surface == NULL ) {
-    printf( "Unable to optimize image %s! SDL Error: %s\n",
-            title_img_path,
-            SDL_GetError() );
-    return 1;
-  }
-
-  //Get rid of old loaded surface
-  SDL_FreeSurface(loaded_surface);
   return 0;
 }
 
@@ -211,16 +200,6 @@ void loop() {
   SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0xFF, 0xFF );
   SDL_RenderFillRect( renderer, &player2 );
 
-  // Render ball
-  SDL_Rect renderQuad = {SCREEN_WIDTH/2 - ball_w/2 + player1_vel,
-                         SCREEN_HEIGHT/2-ball_h/2 + player2_vel,
-                         ball_w,
-                         ball_h};
-  SDL_Rect *clip = NULL;
-  SDL_Point *center = NULL;
-  double angle = 0.0;
-  SDL_RendererFlip flip = SDL_FLIP_NONE;
-
   SDL_RenderCopyEx(renderer,
                    ball_texture,
                    clip,
@@ -232,7 +211,7 @@ void loop() {
   //Update screen
   SDL_RenderPresent(renderer);
 }
-    
+
 int main(int argc, char *args[]){
 
   if (init(&window, &renderer) == 1){
@@ -242,11 +221,6 @@ int main(int argc, char *args[]){
 
   //Get window surface
   screen_surface = SDL_GetWindowSurface(window);
-
-  /* if (load_surface(&png_surface, screen_surface) == 1){ */
-  /*   printf("Failed to load surface\n"); */
-  /*   return 0; */
-  /* } */
 
   if(load_texture(&texture, &ball_texture, renderer) == 1){
     printf("Failed to load texture\n");
@@ -267,8 +241,19 @@ int main(int argc, char *args[]){
                   10,
                   SCREEN_HEIGHT / 6);
 
+    // set up initial positions
+  update_position(&renderQuad,
+                  SCREEN_WIDTH/2 - ball_w/2 + player1_vel,
+                  SCREEN_HEIGHT/2-ball_h/2 + player2_vel,
+                  ball_w,
+                  ball_h);
+#ifdef EMSCRIPTEN
   emscripten_set_main_loop(loop, 0, 1);
-  
+#else
+  while(!quit) {
+    loop();
+  }
+#endif
   SDL_DestroyTexture(texture);
   texture = NULL;
 
