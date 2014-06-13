@@ -19,8 +19,8 @@ static const char *ball_img_path = "dot.bmp";
 static const int velocity = 10;
 int ball_vel_x = 5, ball_vel_y = 0;
 #else
-static const int velocity = 5;
-int ball_vel_x = 5, ball_vel_y = 0;
+static const int velocity = 1;
+int ball_vel_x = 1, ball_vel_y = 0;
 #endif
 
 #define TRUE 1
@@ -30,6 +30,8 @@ int collision;
 int ball_w;
 int ball_h;
 int player1_vel = 0, player2_vel = 0;
+int player1_score =0, player2_score =0;
+int start_time = 0;
 
 static int quit = FALSE;
 static int show_title = TRUE;
@@ -59,6 +61,7 @@ int init(SDL_Window **window, SDL_Renderer **renderer) {
     return 1;
   }
 
+  start_time = SDL_GetTicks();
   //Create window
   *window = SDL_CreateWindow( "Ping pong",
                              SDL_WINDOWPOS_UNDEFINED,
@@ -227,7 +230,13 @@ int check_collision(SDL_Rect A, SDL_Rect B) {
 
 int hit_wall() {
   // we hit the side wall
-  if ((ball.x <= 0) || ((ball.x + ball.w) >= SCREEN_WIDTH)) {
+  if ((ball.x <= 0)){
+    player2_score++;
+    return 1;
+  }
+
+  if ((ball.x + ball.w) >= SCREEN_WIDTH) {
+    player1_score++;
     return 1;
   }
 
@@ -292,13 +301,23 @@ void loop() {
 
   collision = hit_wall();
   if(collision == 1){
-    ball_vel_y = 0;
-    ball_vel_x = abs(ball_vel_x);    
+    printf("Scores: RED PLAYER: %d, BLUE PLAYER: %d\n", player1_score, player2_score);
+    ball_vel_y = rand() % 3 - 1;
+    ball_vel_x = -abs(ball_vel_x);
+
+    if (player1_score > player2_score)
+      ball_vel_x = abs(ball_vel_x);
+
     set_position(&ball,
                  SCREEN_WIDTH/2 - ball_w/2,
                  SCREEN_HEIGHT/2 - ball_h/2,
                  ball_w,
                  ball_h);
+  } else {
+    if ( SDL_GetTicks() - start_time > 500) {
+      start_time = SDL_GetTicks();
+      ball_vel_y = rand() % 7 - 5;
+    }
   }
 
   SDL_RenderClear(renderer);
