@@ -17,19 +17,19 @@ static const char *title_img_path = "x.png";
 static const char *ball_img_path = "dot.bmp";
 #ifdef EMSCRIPTEN
 static const int velocity = 10;
+int ball_vel_x = 5, ball_vel_y = 0;
 #else
 static const int velocity = 1;
+int ball_vel_x = 1, ball_vel_y = 0;
 #endif
-
-
 
 #define TRUE 1
 #define FALSE 0
 
+int collision;
 int ball_w;
 int ball_h;
 int player1_vel = 0, player2_vel = 0;
-int ball_vel_x = velocity, ball_vel_y = 0;
 
 static int quit = FALSE;
 static int show_title = TRUE;
@@ -182,16 +182,60 @@ void move_ball(SDL_Rect* ball, int velocity_x, int velocity_y) {
   ball->y = y;
 }
 
-int check_collision() {
-  // ball collided with player1
-  if (ball.x <= (player1.x + player1.w)){
+int check_collision(SDL_Rect A, SDL_Rect B) {
+  int leftA, leftB;
+  int rightA, rightB;
+  int topA, topB;
+  int bottomA, bottomB;
+
+  leftA = A.x;
+  rightA = A.x+A.w;
+  topA = A.y;
+  bottomA = A.y+A.h;
+
+  leftB = B.x;
+  rightB = B.x + B.w;
+  topB = B.y;
+  bottomB = B.y+B.h;
+
+  if(bottomA <= topB) {
     return 1;
   }
-  // ball collided with player2
-  if ((ball.x+ball.w) >= (player2.x + player2.w)){
-    return 2;
+
+  if(topA >= bottomB) {
+    return 1;
   }
-  // no collision
+
+  if(rightA <= leftB) {
+    return 1;
+  }
+
+  if(leftA >= rightB) {
+    return 1;
+  }
+
+  int midA = topA + (A.h / 2);
+  int midB = topB + (B.h / 2);
+
+  if(midB >= midA ) {
+    ball_vel_y = abs(ball_vel_y+1);
+  } else {
+    ball_vel_y = -abs(ball_vel_y+1);
+  }
+  return 0;
+}
+
+int hit_wall() {
+  // we hit the side wall
+  if ((ball.x <= 0) || ((ball.x + ball.w) >= SCREEN_WIDTH)) {
+    return 1;
+  }
+
+  // we hit top and bottom
+  if ((ball.y <= 0) || ((ball.y+ball.h) >= SCREEN_HEIGHT)){
+    ball_vel_y = -(abs(ball_vel_y));
+  }
+
   return 0;
 }
 
@@ -233,13 +277,29 @@ void loop() {
     return;
   }
 
-  if(check_collision() != 0){
-    ball_vel_x = -ball_vel_x;
-  }
-
   move(&player1, player1_vel);
   move(&player2, player2_vel);
   move_ball(&ball, ball_vel_x, ball_vel_y);
+
+  collision = check_collision(player1, ball);
+  if(collision == 0){
+    ball_vel_x = abs(ball_vel_x);
+  }
+  collision = check_collision(player2, ball);
+  if(collision == 0){
+    ball_vel_x = -(abs(ball_vel_x));
+  }
+
+  collision = hit_wall();
+  if(collision == 1){
+    ball_vel_y = 0;
+    ball_vel_x = abs(ball_vel_x);    
+    set_position(&ball,
+                 SCREEN_WIDTH/2 - ball_w/2,
+                 SCREEN_HEIGHT/2 - ball_h/2,
+                 ball_w,
+                 ball_h);
+  }
 
   SDL_RenderClear(renderer);
 
@@ -254,6 +314,7 @@ void loop() {
   SDL_SetRenderDrawColor( renderer, 0x00, 0x00, 0xFF, 0xFF );
   SDL_RenderFillRect( renderer, &player2 );
 
+  //Render the ball
   SDL_RenderCopyEx(renderer,
                    ball_texture,
                    clip,
