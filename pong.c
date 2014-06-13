@@ -146,6 +146,29 @@ void move(SDL_Rect* player, int velocity) {
   player->y = y;
 }
 
+void move_ball(SDL_Rect* ball, int velocity_x, int velocity_y) {
+  int x = ball->x;
+  int y = ball->y;
+  int h = ball->h;
+  int w = ball->w;
+
+  x = x + velocity_x;
+  y = y + velocity_y;
+
+  // don't go out of screen!!
+  if (x+w > SCREEN_WIDTH || x < 0) {
+    x = x - velocity_x;
+  }
+
+  // don't go out of screen!!
+  if (y+h > SCREEN_HEIGHT || y < 0) {
+    y = y - velocity_y;
+  }
+
+  ball->x = x;
+  ball->y = y;
+}
+
 void loop() {
   static SDL_Event event;
 
@@ -175,7 +198,7 @@ void loop() {
 
   move(&player1, player1_vel);
   move(&player2, player2_vel);
-
+  move_ball(&renderQuad, player1_vel, player2_vel);
   //Render texture to screen
   if (show_title) {
     SDL_RenderClear(renderer);
