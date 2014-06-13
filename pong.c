@@ -125,7 +125,7 @@ int load_texture(SDL_Texture **texture,
   return 0;
 }
 
-void update_position(SDL_Rect* player, int x, int y, int w, int h) {
+void set_position(SDL_Rect* player, int x, int y, int w, int h) {
   player->x = x;
   player->y = y;
   player->w = w;
@@ -227,26 +227,27 @@ int main(int argc, char *args[]){
     return 1;
   }
 
-  // set up initial positions
-  update_position(&player1,
-                  0,
-                  SCREEN_HEIGHT / 2 -  SCREEN_HEIGHT / 12,
-                  10,
-                  SCREEN_HEIGHT / 6);
+  // set up player1
+  set_position(&player1,
+               0,
+               SCREEN_HEIGHT / 2 -  SCREEN_HEIGHT / 12,
+               10,
+               SCREEN_HEIGHT / 6);
 
-  // set up initial positions
-  update_position(&player2,
-                  SCREEN_WIDTH-10,
-                  SCREEN_HEIGHT / 2 - SCREEN_HEIGHT / 12,
-                  10,
-                  SCREEN_HEIGHT / 6);
+  // set up player2
+  set_position(&player2,
+               SCREEN_WIDTH - 10,
+               SCREEN_HEIGHT / 2 - SCREEN_HEIGHT / 12,
+               10,
+               SCREEN_HEIGHT / 6);
 
-    // set up initial positions
-  update_position(&renderQuad,
-                  SCREEN_WIDTH/2 - ball_w/2 + player1_vel,
-                  SCREEN_HEIGHT/2-ball_h/2 + player2_vel,
-                  ball_w,
-                  ball_h);
+  // set up the ball
+  set_position(&renderQuad,
+               SCREEN_WIDTH/2 - ball_w/2 + player1_vel,
+               SCREEN_HEIGHT/2 - ball_h/2 + player2_vel,
+               ball_w,
+               ball_h);
+
 #ifdef EMSCRIPTEN
   emscripten_set_main_loop(loop, 0, 1);
 #else
