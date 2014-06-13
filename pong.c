@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
 
 #ifdef EMSCRIPTEN
 #include <SDL.h>
@@ -13,13 +15,21 @@ static const int SCREEN_WIDTH = 640;
 static const int SCREEN_HEIGHT = 480;
 static const char *title_img_path = "x.png";
 static const char *ball_img_path = "dot.bmp";
+#ifdef EMSCRIPTEN
+static const int velocity = 10;
+#else
 static const int velocity = 1;
+#endif
+
+
 
 #define TRUE 1
 #define FALSE 0
 
 int ball_w;
 int ball_h;
+int player1_vel = 0, player2_vel = 0;
+int ball_vel_x = velocity, ball_vel_y = 0;
 
 static int quit = FALSE;
 static int show_title = TRUE;
@@ -31,9 +41,7 @@ static SDL_Texture *texture = NULL;
 static SDL_Texture *ball_texture = NULL;
 static SDL_Renderer *renderer = NULL;
 
-SDL_Rect player1, player2, renderQuad;
-int player1_vel = 0, player2_vel = 0;
-
+SDL_Rect player1, player2, ball;
 
 SDL_Rect *clip = NULL;
 SDL_Point *center = NULL;
@@ -41,6 +49,11 @@ double angle = 0.0;
 SDL_RendererFlip flip = SDL_FLIP_NONE;
 
 int init(SDL_Window **window, SDL_Renderer **renderer) {
+  printf("Use <up-arrow> and <down-arrow> to control RED player\n");
+  printf("Use 'w' and 's' to control BLUE player\n");
+
+  srand(time(NULL));
+
   if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
     printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError() );
     return 1;
@@ -169,6 +182,19 @@ void move_ball(SDL_Rect* ball, int velocity_x, int velocity_y) {
   ball->y = y;
 }
 
+int check_collision() {
+  // ball collided with player1
+  if (ball.x <= (player1.x + player1.w)){
+    return 1;
+  }
+  // ball collided with player2
+  if ((ball.x+ball.w) >= (player2.x + player2.w)){
+    return 2;
+  }
+  // no collision
+  return 0;
+}
+
 void loop() {
   static SDL_Event event;
 
@@ -196,9 +222,6 @@ void loop() {
     }
   }
 
-  move(&player1, player1_vel);
-  move(&player2, player2_vel);
-  move_ball(&renderQuad, player1_vel, player2_vel);
   //Render texture to screen
   if (show_title) {
     SDL_RenderClear(renderer);
@@ -209,6 +232,14 @@ void loop() {
     SDL_Delay(500);
     return;
   }
+
+  if(check_collision() != 0){
+    ball_vel_x = -ball_vel_x;
+  }
+
+  move(&player1, player1_vel);
+  move(&player2, player2_vel);
+  move_ball(&ball, ball_vel_x, ball_vel_y);
 
   SDL_RenderClear(renderer);
 
@@ -226,7 +257,7 @@ void loop() {
   SDL_RenderCopyEx(renderer,
                    ball_texture,
                    clip,
-                   &renderQuad,
+                   &ball,
                    angle,
                    center,
                    SDL_FLIP_NONE);
@@ -265,7 +296,7 @@ int main(int argc, char *args[]){
                SCREEN_HEIGHT / 6);
 
   // set up the ball
-  set_position(&renderQuad,
+  set_position(&ball,
                SCREEN_WIDTH/2 - ball_w/2,
                SCREEN_HEIGHT/2 - ball_h/2,
                ball_w,
