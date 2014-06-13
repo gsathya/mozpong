@@ -266,8 +266,8 @@ int main(int argc, char *args[]){
 
   // set up the ball
   set_position(&renderQuad,
-               SCREEN_WIDTH/2 - ball_w/2 + player1_vel,
-               SCREEN_HEIGHT/2 - ball_h/2 + player2_vel,
+               SCREEN_WIDTH/2 - ball_w/2,
+               SCREEN_HEIGHT/2 - ball_h/2,
                ball_w,
                ball_h);
 
