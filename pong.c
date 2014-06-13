@@ -19,8 +19,8 @@ static const char *ball_img_path = "dot.bmp";
 static const int velocity = 10;
 int ball_vel_x = 5, ball_vel_y = 0;
 #else
-static const int velocity = 1;
-int ball_vel_x = 1, ball_vel_y = 0;
+static const int velocity = 5;
+int ball_vel_x = 5, ball_vel_y = 0;
 #endif
 
 #define TRUE 1
@@ -232,8 +232,8 @@ int hit_wall() {
   }
 
   // we hit top and bottom
-  if ((ball.y <= 0) || ((ball.y+ball.h) >= SCREEN_HEIGHT)){
-    ball_vel_y = -(abs(ball_vel_y));
+  if ((ball.y-5 <= 0) || ((ball.y+ball.h+5) >= SCREEN_HEIGHT)){
+    ball_vel_y = -ball_vel_y;
   }
 
   return 0;
