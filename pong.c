@@ -241,6 +241,7 @@ int hit_wall() {
   }
 
   // we hit top and bottom
+  // this has some magic for calibration
   if ((ball.y-5 <= 0) || ((ball.y+ball.h+5) >= SCREEN_HEIGHT)){
     ball_vel_y = -ball_vel_y;
   }
@@ -302,6 +303,7 @@ void loop() {
   collision = hit_wall();
   if(collision == 1){
     printf("Scores: RED PLAYER: %d, BLUE PLAYER: %d\n", player1_score, player2_score);
+    // random pick y
     ball_vel_y = rand() % 3 - 1;
     ball_vel_x = -abs(ball_vel_x);
 
@@ -314,6 +316,7 @@ void loop() {
                  ball_w,
                  ball_h);
   } else {
+    // annoy people by changing direction and velocity every second
     if ( SDL_GetTicks() - start_time > 1000) {
       start_time = SDL_GetTicks();
       ball_vel_y = rand() % 7 - 5;
