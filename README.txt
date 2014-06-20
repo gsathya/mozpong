@@ -7,4 +7,5 @@ To build this -
 
 Run -
 
-emcc -O2 --js-opts 0 -g4 pong.c -I/path/to/SDL-mirror/include -I/path/to/SDL_image/include /path/to/SDL-mirror/build/.libs/libSDL2.a /path/to/SDL_image/lib/libSDL2_image.a -o index.html --preload-file x.png --preload-file dot.bmp
+$ emcc -O2 --js-opts 0 -g4 pong.c -I/path/to/SDL-mirror/include -I/path/to/SDL_image/include /path/to/SDL-mirror/build/.libs/libSDL2.a /path/to/SDL_image/lib/libSDL2_image.a -o index.html --preload-file x.png --preload-file dot.bmp
+$ open index.html
